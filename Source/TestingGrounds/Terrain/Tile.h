@@ -25,10 +25,16 @@ public:
 
 	/** Spawns a random prop */
 	UFUNCTION(BlueprintCallable, Category = "Setup")
-	void PlaceActors(TSubclassOf<AActor> ToSpawn, int MinSpawn, int MaxSpawn);
+		void PlaceActors(TSubclassOf<AActor> ToSpawn, int MinSpawn = 1, int MaxSpawn = 1, float Radius = 500.f, float MinScale = 1, float MaxScale = 1);
 
 private:
 
 	/** Checks if there is an object in a sphere in a given location */
-	bool CastSphere(FVector Location, float Radius);
+	bool CanSpawnAtLocation(FVector Location, float Radius);
+
+	/** Returns a valid spawn point for props */
+	bool FindEmptyLocation(FVector &EmptyLocation, float Radius);
+
+	/** Places an actor in a given location */
+	void PlaceActor(TSubclassOf<AActor> ToSpawn, FVector SpawnPoint, float Rotation, float Scale);
 };
