@@ -3,6 +3,7 @@
 #include "Tile.h"
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
+#include "NavigationSystem.h"
 #include "ActorPool.h"
 
 #define MAX_ATTEMPTS 100
@@ -21,6 +22,14 @@ void ATile::BeginPlay()
 	Super::BeginPlay();
 }
 
+void ATile::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	if (Pool != nullptr) {
+		Pool->Return(NavMeshBoundsVolume);
+	}
+}
+
 void ATile::SetPool(UActorPool* InPool)
 {
 	UE_LOG(LogTemp, Warning, TEXT("[%s] Setting Pool %s"), *(this->GetName()), *(InPool->GetName()))
@@ -30,12 +39,17 @@ void ATile::SetPool(UActorPool* InPool)
 
 void ATile::PositionNavMeshBoundsVolume()
 {
-	AActor* NavMeshBoundsVolume = Pool->Checkout();
+	FVector Origin;
+	FVector BoundSize;
+	NavMeshBoundsVolume = Pool->Checkout();
 	if (NavMeshBoundsVolume == nullptr) {
-		UE_LOG(LogTemp, Error, TEXT("[%s] Not enough actors in pool"), *GetName())
+		UE_LOG(LogTemp, Error, TEXT("[%s] Not enough actors in pool"), *(this->GetName()))
 		return;
 	}
-	NavMeshBoundsVolume->SetActorLocation(GetActorLocation());
+	UE_LOG(LogTemp, Warning, TEXT("[%s] Checked out: %s"), *(this->GetName()), *(NavMeshBoundsVolume->GetName()))
+	GetActorBounds(true, Origin, BoundSize);
+	NavMeshBoundsVolume->SetActorLocation(GetActorLocation() + FVector(BoundSize.X, 0, 0));
+	FNavigationSystem::Build(*GetWorld());
 }
 
 // Called every frame

@@ -14,16 +14,29 @@ UActorPool::UActorPool()
 
 AActor* UActorPool::Checkout() 
 {
-	UE_LOG(LogTemp, Warning, TEXT("[%s] Checkout"), *(this->GetName()))
-	return nullptr;
+	if (Pool.Num() == 0) {
+		return nullptr;
+	}
+	return Pool.Pop();
 }
 
 void UActorPool::Return(AActor* ActorToReturn) 
 {
-
+	if (ActorToReturn == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[%s] null Actor returned"), *(this->GetName()))
+		return;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Returned actor: %s"), *ActorToReturn->GetName())
+	Pool.Push(ActorToReturn);
 }
 
 void UActorPool::Add(AActor* ActorToAdd) 
 {
-
+	if (ActorToAdd == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[%s] null Actor added"), *(this->GetName()))
+		return;
+	}
+	Pool.Push(ActorToAdd);
 }

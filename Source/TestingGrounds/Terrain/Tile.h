@@ -21,6 +21,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -32,9 +34,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Pool")
 	void SetPool(UActorPool* InPool);
-
-	
-
 
 private:
 	/** Checks if there is an object in a sphere in a given location */
@@ -49,4 +48,6 @@ private:
 	void PositionNavMeshBoundsVolume();
 
 	UActorPool* Pool;
+
+	AActor* NavMeshBoundsVolume;
 };
