@@ -3,6 +3,7 @@
 #include "Tile.h"
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
+#include "ActorPool.h"
 
 #define MAX_ATTEMPTS 100
 
@@ -18,6 +19,23 @@ ATile::ATile()
 void ATile::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void ATile::SetPool(UActorPool* InPool)
+{
+	UE_LOG(LogTemp, Warning, TEXT("[%s] Setting Pool %s"), *(this->GetName()), *(InPool->GetName()))
+	Pool = InPool;
+	PositionNavMeshBoundsVolume();
+}
+
+void ATile::PositionNavMeshBoundsVolume()
+{
+	AActor* NavMeshBoundsVolume = Pool->Checkout();
+	if (NavMeshBoundsVolume == nullptr) {
+		UE_LOG(LogTemp, Error, TEXT("[%s] Not enough actors in pool"), *GetName())
+		return;
+	}
+	NavMeshBoundsVolume->SetActorLocation(GetActorLocation());
 }
 
 // Called every frame
@@ -58,25 +76,24 @@ bool ATile::FindEmptyLocation(FVector &EmptyLocation, float Radius) {
 /** Places an actor in a given location */
 void ATile::PlaceActor(TSubclassOf<AActor> ToSpawn, FVector SpawnPoint, float Rotation, float Scale) {
 	AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(ToSpawn);
-	SpawnedActor->SetActorRelativeLocation(SpawnPoint);
-	SpawnedActor->AttachToActor(this, FAttachmentTransformRules(EAttachmentRule::KeepRelative, false));
+	SpawnedActor->AttachToActor(this, FAttachmentTransformRules(EAttachmentRule::KeepWorld, false));
+	SpawnedActor->SetActorLocation(SpawnPoint);
 	SpawnedActor->SetActorRotation(FRotator(0, Rotation, 0));
 	SpawnedActor->SetActorScale3D(FVector(Scale));
 }
 
 bool ATile::CanSpawnAtLocation(FVector Location, float Radius) {
 	FHitResult HitResult;
-	FVector GlobalLocation = ActorToWorld().TransformPosition(Location);
 	bool HasHit = GetWorld()->SweepSingleByChannel(
 		HitResult,
-		GlobalLocation,
-		GlobalLocation,
+		Location,
+		Location,
 		FQuat::Identity,
 		ECollisionChannel::ECC_GameTraceChannel2,
 		FCollisionShape::MakeSphere(Radius));
 
 	FColor ResultColor = HasHit ? FColor::Red : FColor::Green;
-	//DrawDebugCapsule(GetWorld(), GlobalLocation, 0, Radius, FQuat::Identity, ResultColor, true, 100.f);
+	//DrawDebugCapsule(GetWorld(), Location, 0, Radius, FQuat::Identity, ResultColor, true, 100.f);
 
 	return !HasHit;
 }
