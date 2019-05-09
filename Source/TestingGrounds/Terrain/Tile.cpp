@@ -28,6 +28,14 @@ void ATile::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (Pool != nullptr && NavMeshBoundsVolume != nullptr) {
 		Pool->Return(NavMeshBoundsVolume);
 	}
+
+	TArray<AActor*> AttachedActors;
+	GetAttachedActors(AttachedActors);
+	for (AActor* AttachedActor : AttachedActors) 
+	{
+		AttachedActor->Destroy();
+	}
+
 }
 
 void ATile::SetPool(UActorPool* InPool)
