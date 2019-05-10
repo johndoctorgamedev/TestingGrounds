@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Gun.h"
+#include "Perception/AISense_Hearing.h"
+#include "GameFramework/Actor.h"
 #include "BallProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "Kismet/GameplayStatics.h"
@@ -46,6 +48,9 @@ AGun::AGun()
 	R_MotionController->SetupAttachment(RootComponent);
 	L_MotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("L_MotionController"));
 	L_MotionController->SetupAttachment(RootComponent);
+
+	bIsFiring = false;
+	bIsTimerSet = false;
 }
 
 // Called when the game starts or when spawned
@@ -68,10 +73,21 @@ void AGun::BeginPlay()
 void AGun::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	if (bIsFiring)
+	{
+		if (!bIsTimerSet)
+		{
+			GetWorldTimerManager().SetTimer(FireRateTimerHandler, this, &AGun::ReleaseBullet, FireRate, true, 0.f);
+			bIsTimerSet = true;
+		}
+	}
+	else {
+		GetWorldTimerManager().ClearTimer(FireRateTimerHandler);
+		bIsTimerSet = false;
+	}
 }
 
-void AGun::OnFire()
+void AGun::ReleaseBullet()
 {
 	// try and fire a projectile
 	if (ProjectileClass != NULL)
@@ -105,6 +121,7 @@ void AGun::OnFire()
 	if (FireSound != NULL)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+		//UAISense_Hearing::ReportNoiseEvent(GetWorld(), GetActorLocation(), 1.0f, this, 0.f);
 	}
 
 	// try and play a firing animation if specified
@@ -124,4 +141,14 @@ void AGun::OnFire()
 			AnimInstance1P->Montage_Play(FireAnimation1P, 1.f);
 		}
 	}
+}
+
+void AGun::StopFiring()
+{
+	bIsFiring = false;
+}
+
+void AGun::StartFiring()
+{
+	bIsFiring = true;
 }

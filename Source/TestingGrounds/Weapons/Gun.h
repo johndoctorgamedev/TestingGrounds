@@ -29,11 +29,11 @@ class TESTINGGROUNDS_API AGun : public AActor
 
 	/** Motion controller (right hand) */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		class UMotionControllerComponent* R_MotionController;
+	class UMotionControllerComponent* R_MotionController;
 
 	/** Motion controller (left hand) */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		class UMotionControllerComponent* L_MotionController;
+	class UMotionControllerComponent* L_MotionController;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -53,7 +53,7 @@ public:
 
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-		class UAnimMontage* FireAnimation1P;
+	class UAnimMontage* FireAnimation1P;
 
 	/** Whether to use motion controller location for aiming. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
@@ -76,8 +76,21 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void StopFiring();
+
+	void StartFiring();
+
 	/** Fires a projectile. */
 	UFUNCTION(BlueprintCallable, Category = "Setup")
-	void OnFire();
+	void ReleaseBullet();
+private:
+	
+	/** Determines if gun is firing */
+	bool bIsFiring;
 
+	FTimerHandle FireRateTimerHandler;
+
+	float FireRate = 0.2f;
+
+	bool bIsTimerSet;
 };
